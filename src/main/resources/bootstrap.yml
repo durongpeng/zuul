@@ -1,0 +1,43 @@
+server:
+    port: 7001
+spring:
+    profiles:
+        active: test
+    application:
+        name: gyd-gateway
+    cloud:
+        # 配置中心consul信息
+        consul:
+            enabled: true # 是否启用consul, 默认true
+            host: 192.168.153.128
+            port: 8500
+            # 业务服务实例信息
+            discovery:
+                enabled: true     # 是否发现其他服务, 默认true
+                register: true    # 是否需要注册到consul， 默认true
+                instance-id: gyd-gateway-${spring.profiles.active}-${random.uuid}    # 注册实例ID。必须唯一
+                serviceName: gyd-gateway-${spring.profiles.active}    # 注册实例服务名
+                #        hostname: 10.2.54.157    # 注册实例host
+                prefer-ip-address: true   # 是否使用ip地址注册
+                #        ip-address: ${spring.cloud.client.ip-address}
+                ip-address: 10.2.54.157   # 注册实例服务IP
+                port: ${server.port}      # 注册实例服务端口
+                healthCheckPath: /actuator/health  # 健康检查路径
+                healthCheckInterval: 15s           # 健康检查频率
+                health-check-timeout: 3s           # 健康检查超时时间
+                health-check-critical-timeout: 3s # 健康检查失败多长时间后，取消注册
+            # 配置中心
+            config:
+                enabled: true # 启动consul配置中心
+                format: YAML  # 配置文件格式
+                data-key: ${spring.profiles.active} # 配置文件目录以/data结尾，默认为data
+                prefix: config # 配置文件目录以/config为根目录，默认为config
+# 路由配置
+zuul:
+    routes:
+        test:
+            path: /test1/**                # 请求URL映射路径
+#            url: http://localhost:8001/   # 跳转具体业务服务地址
+            serviceId: gyd-apigw-test      # 根据serviceId从注册中心跳转指定服务
+    ignored-patterns:                      # 排除路由URL规则
+    prefix:                                # 路由前缀
