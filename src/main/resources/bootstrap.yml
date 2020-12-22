@@ -4,7 +4,7 @@ spring:
     profiles:
         active: test
     application:
-        name: gyd-gateway
+        name: gyd-zuul
     cloud:
         # 配置中心consul信息
         consul:
@@ -15,8 +15,8 @@ spring:
             discovery:
                 enabled: true     # 是否发现其他服务, 默认true
                 register: true    # 是否需要注册到consul， 默认true
-                instance-id: gyd-gateway-${spring.profiles.active}-${random.uuid}    # 注册实例ID。必须唯一
-                serviceName: gyd-gateway-${spring.profiles.active}    # 注册实例服务名
+                instance-id: gyd-zuul-${spring.profiles.active}-${random.uuid}    # 注册实例ID。必须唯一
+                serviceName: gyd-zuul-${spring.profiles.active}    # 注册实例服务名
                 #        hostname: 10.2.54.157    # 注册实例host
                 prefer-ip-address: true   # 是否使用ip地址注册
                 #        ip-address: ${spring.cloud.client.ip-address}
@@ -38,6 +38,6 @@ zuul:
         test:
             path: /test1/**                # 请求URL映射路径
 #            url: http://localhost:8001/   # 跳转具体业务服务地址
-            serviceId: gyd-apigw-test      # 根据serviceId从注册中心跳转指定服务
+            serviceId: gyd-apigw-${spring.profiles.active}     # 根据serviceId从注册中心跳转指定服务
     ignored-patterns:                      # 排除路由URL规则
     prefix:                                # 路由前缀

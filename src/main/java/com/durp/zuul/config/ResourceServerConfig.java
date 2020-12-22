@@ -9,52 +9,34 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+
 
 @Configuration
 @EnableResourceServer
-public class ResourceServerConfig {
+public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     public static final String RESOURCE_ID = "res1";
-    /**
-     * 统一认证服务(UAA) 资源拦截
-     */
-    @Configuration
-    @EnableResourceServer
-    public class UAAServerConfig extends
-            ResourceServerConfigurerAdapter {
-        @Autowired
-        private TokenStore tokenStore;
-        @Override
-        public void configure(ResourceServerSecurityConfigurer resources){
-            resources.tokenStore(tokenStore).resourceId(RESOURCE_ID)
-                    .stateless(true);
-        } @
-                Override
-        public void configure(HttpSecurity http) throws Exception {
-            http.authorizeRequests()
-                    .antMatchers("/uaa/**").permitAll();
-        }
+
+    @Bean
+    public RemoteTokenServices tokenService() {
+        RemoteTokenServices tokenService = new RemoteTokenServices();
+        tokenService.setClientId("order-client");
+        tokenService.setClientSecret("order-secret-8888");
+        tokenService.setCheckTokenEndpointUrl("http://localhost:9000/oauth/check_token");
+        return tokenService;
+    }
+
+    @Override
+    public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+        resources.tokenServices(tokenService());
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/**").permitAll()
+                .antMatchers("/redis/*").permitAll();
     }
 
 
-    @Configuration
-    @EnableResourceServer
-    public class OrderServerConfig extends
-            ResourceServerConfigurerAdapter {
-        @Autowired
-        private TokenStore tokenStore;
-        @Override
-        public void configure(ResourceServerSecurityConfigurer resources) {
-            resources.tokenStore(tokenStore).resourceId(RESOURCE_ID)
-                    .stateless(true);
-        } @
-                Override
-        public void configure(HttpSecurity http) throws Exception {
-            http
-                    .authorizeRequests()
-                    .antMatchers("/order/**").access("#oauth2.hasScope('ROLE_API')");
-        }
-    }
 }
